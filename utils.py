@@ -31,10 +31,10 @@ URL = "http://127.0.0.1:7861"
 
 
 with open("credentials.txt", "r") as file:
-    TOKEN = file.readline()
-    MY_ID = file.readline()
-    CHANNEL_ID = file.readline()
-    ALLOWED_IDS = {MY_ID} | set(file.readline().split())
+    TOKEN = file.readline().strip()
+    MY_ID = file.readline().strip()
+    CHANNEL_ID = file.readline().strip()
+    ALLOWED_IDS = {MY_ID} | set(file.readline().strip().split())
 
 
 class Lora(NamedTuple):

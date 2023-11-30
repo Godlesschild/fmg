@@ -336,7 +336,7 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     style = style.name if style is not None else "none"
     model = model.split(".")[0] if model is not None else "none"
     caption = (
-        f'✿ seed: <a href="https://t.me/aiwaifugenerated">{seed}</a>\n'
+        f'✿ seed: <a href="https://t.me/+BMD17kF8MdJkMmEy">{seed}</a>\n'  # TODO remove link
         f"\n"
         f"⁺₊✧‧₊ style:  #{style}\n"
         f"‧₊❀˖° model: #{model}\n"

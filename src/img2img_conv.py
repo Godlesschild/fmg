@@ -146,7 +146,7 @@ async def img2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     images = await IMG2IMG.generate([context.user_data["image"]], context.user_data["settings"]["prompt"])
     # TODO context.user_data["settings"]["style"]
 
-    await utils.send_images(images, context, update.message)
+    await utils.send_images(images, context, update.message, "TODO")
 
     del context.user_data["prompt_msg"]
 

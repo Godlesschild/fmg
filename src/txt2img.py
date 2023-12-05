@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 import random
 import re
 from io import BytesIO
@@ -68,6 +69,7 @@ class Txt2Img:
                 break
 
         print()
+        print(datetime.now())
         print()
         print(prompt)
         print()

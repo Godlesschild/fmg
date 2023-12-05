@@ -55,6 +55,7 @@ class Txt2Img:
 
         settings = {
             "sd_model_checkpoint": model,
+            "sd_vae": "Automatic",
         }
 
         n_iter = generation_settings.pop("n_iter", 3)

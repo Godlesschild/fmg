@@ -1,11 +1,12 @@
-style lora:
+put style loras here like this: 
 
-put style loras here like this: (<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word), ...
-
-
-other lora:
+(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word)
+(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word)
+...
 
 put other loras here like this: 
-(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word, lora_trigger_word)
-(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word, lora_trigger_word)
+
+(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word)
+(<lora_name:lora_weight>; lora_trigger_word, lora_trigger_word)
+...
 

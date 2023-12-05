@@ -10,4 +10,6 @@
    * The second line is your id,
    * The third line is the channel id,
    * The forth line is a list of allowed ids other than yours, separated by spaces.
-5. Run ` py src/main.py` from the root repo directory.
+5. Add your pre prompt to `pre_prompt.txt`. 
+6. Add loras to `loras.txt`.
+7. Run `py src/main.py` from the root repo directory.

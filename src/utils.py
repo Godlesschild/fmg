@@ -182,18 +182,32 @@ def downscale_image(image: Image.Image):
 def styles() -> list[Lora]:
     requests.post(url=f"{URL}/sdapi/v1/refresh-loras")
 
+    styles = set()
+    style_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
+
     with open(LORA_PATH, "r") as file:
-        file.readline()
-        file.readline()
+        loras_lines = file.readlines()
 
-        style_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
+    # find style loras
+    for i, line in enumerate(loras_lines):
+        matches = style_pattern.finditer(line)
 
-        styles = [
+        if len(list(matches)) > 0:
+            loras_lines = loras_lines[i:]
+            break
+
+    for line in loras_lines:
+        matches = list(style_pattern.finditer(line))
+
+        if len(matches) == 0:
+            break
+
+        styles.update(
             Lora(style.group(1), float(style.group(2)), tuple(style.group(3).split(", ")))  # type: ignore
-            for style in style_pattern.finditer(file.readline())
-        ]
+            for style in matches
+        )
 
-    return styles
+    return list(styles)
 
 
 def models() -> list[str]:
@@ -207,24 +221,42 @@ def loras() -> list[Lora]:
     requests.post(url=f"{URL}/sdapi/v1/refresh-loras")
 
     loras = set()
+    lora_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
 
     with open(LORA_PATH, "r") as file:
-        lora_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
+        loras_lines = file.readlines()
 
-        while "other lora" not in file.readline():
-            pass
-        file.readline()
+    # find style loras
+    for i, line in enumerate(loras_lines):
+        matches = lora_pattern.finditer(line)
 
-        for line in file:
-            if lora_pattern.search(line) is None:
-                continue
+        if len(list(matches)) > 0:
+            loras_lines = loras_lines[i:]
+            break
 
-            matches = lora_pattern.finditer(line)
+    # skip style loras
+    for i, line in enumerate(loras_lines):
+        matches = lora_pattern.finditer(line)
 
-            loras.update(
-                Lora(lora.group(1), float(lora.group(2)), tuple(lora.group(3).split(", ")))  # type: ignore
-                for lora in matches
-            )
+        if len(list(matches)) == 0:
+            loras_lines = loras_lines[i:]
+            break
+
+    # find other loras
+    for i, line in enumerate(loras_lines):
+        matches = lora_pattern.finditer(line)
+
+        if len(list(matches)) > 0:
+            loras_lines = loras_lines[i:]
+            break
+
+    for line in loras_lines:
+        matches = list(lora_pattern.finditer(line))
+
+        loras.update(
+            Lora(lora.group(1), float(lora.group(2)), tuple(lora.group(3).split(", ")))  # type: ignore
+            for lora in matches
+        )
 
     return list(loras)
 

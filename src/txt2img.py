@@ -1,23 +1,18 @@
 import base64
 from datetime import datetime
 import random
-import re
 from io import BytesIO
 from typing import Callable, Optional
 
 import requests
 import torch
-from more_itertools import flatten
 from PIL import Image
 
 import utils
 
 
 class Txt2Img:
-    AUTO_PROMPTS = "((masterpiece)), ((best quality)), ((sexy)), (((nsfw))), ((perfect face)), (((perfect anatomy))), ((naked))"
-
-    # AUTO_LORA = "<lora:BreastInClass:0.3> <lora:MoreDetails:0.5> <lora:innievag:0.5>"
-    AUTO_LORA = " <lora:BreastInClass:0.3> <lora:innievag:0.5>"
+    PRE_PROMPT = utils.pre_prompt()
 
     PER_STYLE_SETTINGS = {
         # "anime_tarot": {"width": 512, "height": 768},
@@ -37,20 +32,7 @@ class Txt2Img:
         callback: Optional[Callable[[int, torch.Tensor, dict], None]] = None,
         save: bool = False,
     ) -> tuple[int, list[Image.Image]]:
-        if len(loras) > 0:
-            lora_triggers = (
-                ", ".join(flatten([lora.trigger_words for lora in loras if lora is not None])) + ", "
-            )
-            loras_kw = " ".join([f"<lora:{lora.name}:{lora.weight}>" for lora in loras if lora is not None])
-        else:
-            lora_triggers = ""
-            loras_kw = ""
-
-        prompt = re.sub(r"(\{*masterpiece\}*)|(\{*best quality\}*)", "", prompt).strip("., ")
-        prompt = f"{self.AUTO_PROMPTS}{lora_triggers}{prompt} {loras_kw}{self.AUTO_LORA}"
-
-        neg_prompt = "" if neg_prompt is None else neg_prompt
-        neg_prompt = " ".join(utils.neg_embeddings()) + " " + neg_prompt
+        prompt, neg_prompt = utils.prepare_prompt(prompt, loras, neg_prompt)
 
         seed = random.randrange(1000000000)
 

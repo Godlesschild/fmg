@@ -8,6 +8,7 @@ from io import BytesIO
 from math import ceil
 from pathlib import Path
 from typing import Iterator, NamedTuple, Optional
+from more_itertools import flatten
 
 import requests
 import telegram
@@ -25,7 +26,8 @@ NEGATIVE_EMBEDDINGS_DIR = ASSETS_DIR / "embeddings"
 DIFFUSION_DIR = MODELS_DIR / "Stable-diffusion"
 LORA_DIR = MODELS_DIR / "lora"
 
-GENRE_PROMPTS_PATH = Path(".", "genre_prompts.txt")
+PRE_PROMPT_PATH = Path(".", "pre_prompt.txt")
+LORA_PATH = Path(".", "loras.txt")
 
 URL = "http://127.0.0.1:7861"
 
@@ -178,7 +180,12 @@ def downscale_image(image: Image.Image):
 
 
 def styles() -> list[Lora]:
-    with open(GENRE_PROMPTS_PATH, "r") as file:
+    requests.post(url=f"{URL}/sdapi/v1/refresh-loras")
+
+    with open(LORA_PATH, "r") as file:
+        file.readline()
+        file.readline()
+
         style_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
 
         styles = [
@@ -190,16 +197,22 @@ def styles() -> list[Lora]:
 
 
 def models() -> list[str]:
+    requests.post(url=f"{URL}/sdapi/v1/refresh-checkpoints")
+
     response = requests.get(url=f"{URL}/sdapi/v1/sd-models").json()
     return [model["title"] for model in response]
 
 
 def loras() -> list[Lora]:
+    requests.post(url=f"{URL}/sdapi/v1/refresh-loras")
+
     loras = set()
 
-    with open(GENRE_PROMPTS_PATH, "r") as file:
+    with open(LORA_PATH, "r") as file:
         lora_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
 
+        while "other lora" not in file.readline():
+            pass
         file.readline()
 
         for line in file:
@@ -216,25 +229,31 @@ def loras() -> list[Lora]:
     return list(loras)
 
 
-def genre_prompts() -> dict[str, list[str]]:
-    genre_prompts: dict[str, list[str]] = {}
-    with open(GENRE_PROMPTS_PATH, "r") as file:
-        genre_pattern = re.compile(r"^([a-zA-Z\\/, ]+):$")
-        lora_line_pattern = re.compile(r"\w+\s+lora -")
+def pre_prompt() -> str:
+    with open(PRE_PROMPT_PATH, "r") as file:
+        pre_prompt = file.readline().strip()
 
-        for _ in range(3):
-            file.readline()
+    return pre_prompt
 
-        cur_genre = ""
-        for line in file:
-            line = line.strip()
-            if len(line) == 0 or lora_line_pattern.match(line):
-                continue
 
-            if genre_match := genre_pattern.match(line):
-                cur_genre = genre_match.group(1)
-                genre_prompts[cur_genre] = []
-            else:
-                genre_prompts[cur_genre].append(line)
+def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = None) -> tuple[str, str]:
+    lora_triggers = ""
+    lora_keywords = ""
+    if len(loras) > 0:
+        lora_triggers = list(flatten([lora.trigger_words for lora in loras]))
+        lora_triggers = ", " + ", ".join(lora_triggers)
 
-    return genre_prompts
+        lora_keywords = [f"<lora:{lora.name}:{lora.weight}>" for lora in loras]
+        lora_keywords = " " + " ".join(lora_keywords)
+
+    pre = pre_prompt()
+    if pre != "":
+        pre = pre + ", "
+
+    prompt = re.sub(r"(\{*masterpiece\}*)|(\{*best quality\}*)", "", prompt).strip("., ")
+    prompt = pre + prompt + lora_triggers + lora_keywords
+
+    neg_prompt = "" if neg_prompt is None else neg_prompt
+    neg_prompt = " ".join(neg_embeddings()) + " " + neg_prompt
+
+    return (prompt, neg_prompt)

@@ -133,36 +133,6 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             # TODO return IMG2IMG_STATE.GET_IMAGE
 
 
-async def undress(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
-    if update.message is None or context.user_data is None:
-        return
-
-    file = await update.message.effective_attachment[-1].get_file()  # type: ignore
-    file_buf = BytesIO(await file.download_as_bytearray())
-
-    image = Image.open(file_buf).convert("RGB")
-
-    if max(image.size) > 1024:
-        factor = 1024 / max(image.size)
-        new_size = utils.round_size((image.width * factor, image.height * factor))
-        image = image.resize(new_size, resample=Image.Resampling.LANCZOS)
-
-    images = await PIX2PIX.generate("make her naked with small breasts", image, gen_num=1)
-    await PIX2PIX.free()
-
-    await utils.send_images(images, context, update.message, caption="")
-
-    unmasked_prompt = '[txt2mask method="clipseg" mode="add" sketch_alpha=0.0 show unload_model precision=100.0 padding=30.0 smoothing=20.0 stamp_method="stretch" stamp_x=0.0 stamp_y=0.0]face[/txt2mask]'
-    prompt = "1girl, (((small breasts))), nude body, nude breasts, nipples"
-
-    mask = await IMG2IMG.create_mask(images[0], unmasked_prompt)
-
-    images = await IMG2IMG.generate(images, prompt, mask=mask)
-    await utils.send_images(images, context, update.message, caption="")
-
-    # await progress_message.delete()
-
-
 if __name__ == "__main__":
     persistence = PicklePersistence("./persistence/persistence", update_interval=30, single_file=False)
     app = (

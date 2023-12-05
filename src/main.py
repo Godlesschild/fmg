@@ -62,9 +62,6 @@ PIX2PIX = Pix2Pix()
 
 
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
-    if update.effective_user is None or str(update.effective_user.id) not in utils.ALLOWED_IDS:
-        return None
-
     if context.user_data is None:
         return None
 
@@ -82,9 +79,6 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
-    if update.effective_user is None or str(update.effective_user.id) not in utils.ALLOWED_IDS:
-        return None
-
     if update.message is None or context.user_data is None:
         return None
 
@@ -169,17 +163,11 @@ async def undress(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     # await progress_message.delete()
 
 
-async def started(app: Application):
-    for id in utils.ALLOWED_IDS:
-        await app.bot.send_message(id, "BOT STARTED")
-
-
 if __name__ == "__main__":
     persistence = PicklePersistence("./persistence/persistence", update_interval=30, single_file=False)
     app = (
         Application.builder()
         .token(utils.TOKEN)
-        .post_init(started)
         .concurrent_updates(False)
         .persistence(persistence)
         .arbitrary_callback_data(True)

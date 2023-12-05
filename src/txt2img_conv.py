@@ -323,13 +323,15 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     kwargs = {
         "prompt": prompt,
         "neg_prompt": context.user_data["neg_prompt"],
-        "loras": [style],
         "generation_settings": context.user_data["settings"],
     }
     if model is not None:
         kwargs["model"] = model
 
-    kwargs["loras"].extend(context.user_data["loras"])
+    kwargs["loras"] = context.user_data["loras"]
+
+    if style is not None:
+        kwargs["loras"].append(style)
 
     seed, images = await TXT2IMG.generate(**kwargs)
 

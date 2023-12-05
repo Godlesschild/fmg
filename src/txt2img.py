@@ -31,7 +31,7 @@ class Txt2Img:
         generation_settings: dict[str, int | float],
         neg_prompt: Optional[str] = None,
         model: str = "AnythingV5.safetensors [a1535d0a42]",
-        loras: list[utils.Lora | None] = [],
+        loras: list[utils.Lora] = [],
         dimensions: tuple[int, int] = (512, 768),
         callback: Optional[Callable[[int, torch.Tensor, dict], None]] = None,
         save: bool = False,

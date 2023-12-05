@@ -11,7 +11,7 @@ from telegram.ext import ContextTypes
 
 import utils
 from txt2img import Txt2Img
-from utils import CHANNEL_ID, STATE
+from utils import STATE
 
 TXT2IMG = Txt2Img()
 

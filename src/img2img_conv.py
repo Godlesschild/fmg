@@ -1,17 +1,16 @@
-from io import BytesIO
-from PIL import Image
 from enum import Enum
+from io import BytesIO
 from typing import Optional
 
 from more_itertools import chunked_even
+from PIL import Image
 from telegram import InlineKeyboardButton as IKB
 from telegram import InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
 from telegram.ext import ContextTypes
-from img2img import Img2Img
-from txt2img import Txt2Img
 
 import utils
-
+from img2img import Img2Img
+from txt2img import Txt2Img
 
 TXT2IMG = Txt2Img()
 IMG2IMG = Img2Img()

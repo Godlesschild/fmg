@@ -1,12 +1,10 @@
-import random
 import re
 from enum import Enum
 from typing import Optional
 
-import telegram
 from more_itertools import chunked_even
 from telegram import InlineKeyboardButton as IKB
-from telegram import InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
+from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 import utils

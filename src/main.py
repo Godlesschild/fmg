@@ -1,9 +1,5 @@
-import os
-import shlex
 import subprocess
-import sys
 from enum import Enum
-from io import BytesIO
 from time import sleep
 from typing import Optional
 from warnings import filterwarnings
@@ -11,7 +7,6 @@ from warnings import filterwarnings
 import nest_asyncio
 import requests
 from more_itertools import chunked_even
-from PIL import Image
 from telegram import InlineKeyboardButton as IKB
 from telegram import InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -31,7 +26,7 @@ import txt2img_conv
 import txt2prompt_conv
 import utils
 from img2img_conv import IMG2IMG, IMG2IMG_STATE
-from txt2img_conv import TXT2IMG, TXT2IMG_STATE
+from txt2img_conv import TXT2IMG_STATE
 from txt2prompt_conv import TXT2PROMPT_STATE
 
 filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)

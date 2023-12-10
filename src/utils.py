@@ -8,14 +8,14 @@ from io import BytesIO
 from math import ceil
 from pathlib import Path
 from typing import Iterator, NamedTuple, Optional
-from more_itertools import flatten
 
 import requests
 import telegram
 from compel import Compel, DiffusersTextualInversionManager
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
+from more_itertools import flatten
 from PIL import Image
-from telegram import InlineKeyboardMarkup, InputMediaPhoto, Message
+from telegram import InputMediaPhoto, Message
 from telegram.ext import ContextTypes, ConversationHandler
 from torch import FloatTensor
 

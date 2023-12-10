@@ -124,7 +124,26 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             return TXT2IMG_STATE.LORAS
 
         case "SETTINGS":
-            message = "Enter generation settings:\n\n`n_iter`: 3,\n`guidance_scale`: 7\n`denoising_strength`: 1,\nnum_inference_steps: 30,\nOptional[`neg_prompt`]: ___"
+            settings = context.user_data["settings"]
+            if settings == {}:
+                settings = Txt2Img.DEFAULT_SETTINGS.copy()
+
+            n_iter = settings["n_iter"]
+            cfg_scale = settings["cfg_scale"]
+            denoising_strength = settings["denoising_strength"]
+            steps = settings["steps"]
+            neg_prompt = context.user_data["neg_prompt"]
+
+            message = (
+                f"Generation settings:\n"
+                f"\n"
+                f"iterations: {n_iter},\n"
+                f"guidance scale: {cfg_scale}\n"
+                f"denoising strength: {denoising_strength},\n"
+                f"steps: {steps},\n"
+                f"Optional[`neg prompt`]: {neg_prompt}"
+            )
+
             keyboard = InlineKeyboardMarkup(
                 [[IKB("Default", callback_data="Default")], [IKB("⬅️", callback_data="BACK")]]
             )
@@ -271,9 +290,9 @@ async def settings_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return
 
     context.user_data["settings"]["n_iter"] = int(match.group(1))
-    context.user_data["settings"]["guidance_scale"] = float(match.group(2))
+    context.user_data["settings"]["cfg_scale"] = float(match.group(2))
     context.user_data["settings"]["denoising_strength"] = float(match.group(3))
-    context.user_data["settings"]["num_inference_steps"] = int(match.group(4))
+    context.user_data["settings"]["steps"] = int(match.group(4))
     context.user_data["neg_prompt"] = match.group(6)
 
     await update.message.reply_text("TXT2IMG", reply_markup=START_KEYBOARD)
@@ -291,6 +310,7 @@ async def default_settings_txt2img(
     await query.answer()
 
     if query.data != "BACK":
+        context.user_data["settings"] = {}
         context.user_data["neg_prompt"] = None
 
     await query.edit_message_text("TXT2IMG")
@@ -319,16 +339,20 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     style = context.user_data["style"]
     model = context.user_data["model"]
     prompt = context.user_data["prompt"]
+    neg_prompt = context.user_data["neg_prompt"]
+    settings = context.user_data["settings"]
+    if settings == {}:
+        settings = Txt2Img.DEFAULT_SETTINGS.copy()
 
     kwargs = {
         "prompt": prompt,
-        "neg_prompt": context.user_data["neg_prompt"],
-        "generation_settings": context.user_data["settings"],
+        "neg_prompt": neg_prompt,
+        "generation_settings": settings,
     }
     if model is not None:
         kwargs["model"] = model
 
-    kwargs["loras"] = context.user_data["loras"]
+    kwargs["loras"] = context.user_data["loras"].copy()
 
     if style is not None:
         kwargs["loras"].append(style)

@@ -14,12 +14,7 @@ import utils
 class Txt2Img:
     PRE_PROMPT = utils.pre_prompt()
 
-    PER_STYLE_SETTINGS = {
-        # "anime_tarot": {"width": 512, "height": 768},
-        # "takes_off": {"width": 512, "height": 768},
-        # "botw": {"width": 512, "height": 768},
-        # "arcane": {"width": 512, "height": 768},
-    }
+    DEFAULT_SETTINGS = {"n_iter": 3, "steps": 30, "cfg_scale": 7, "denoising_strength": 1}
 
     async def generate(
         self,
@@ -34,6 +29,8 @@ class Txt2Img:
     ) -> tuple[int, list[Image.Image]]:
         prompt, neg_prompt = utils.prepare_prompt(prompt, loras, neg_prompt)
 
+        generation_settings = generation_settings.copy()
+
         seed = random.randrange(1000000000)
 
         settings = {
@@ -41,7 +38,7 @@ class Txt2Img:
             "sd_vae": "Automatic",
         }
 
-        n_iter = generation_settings.pop("n_iter", 3)
+        n_iter = generation_settings.pop("n_iter")
         batch_size = 1
         for i in range(2, 4):
             d, m = divmod(n_iter, i)
@@ -65,8 +62,6 @@ class Txt2Img:
             "height": dimensions[1],
             "batch_size": batch_size,
             "n_iter": n_iter,
-            "steps": 30,
-            "cfg_scale": 7,
             "override_settings": settings,
             "resize_mode": 2,
             "inpaint_full_res_padding": 32,
@@ -74,12 +69,6 @@ class Txt2Img:
             "sampler_index": "DPM++ 2M Karras",
             "seed": seed,
         }
-
-        [
-            request.update(self.PER_STYLE_SETTINGS.get(style.name, {}))
-            for style in loras
-            if style in utils.styles()
-        ]
 
         request.update(generation_settings)
 

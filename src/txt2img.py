@@ -48,7 +48,7 @@ class Txt2Img:
                 break
 
         print()
-        print(datetime.now())
+        print(str(datetime.now()).split(".")[0])
         print()
         print(prompt)
         print()

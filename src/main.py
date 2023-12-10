@@ -31,7 +31,6 @@ import txt2img_conv
 import txt2prompt_conv
 import utils
 from img2img_conv import IMG2IMG, IMG2IMG_STATE
-from pix2pix import Pix2Pix
 from txt2img_conv import TXT2IMG, TXT2IMG_STATE
 from txt2prompt_conv import TXT2PROMPT_STATE
 
@@ -58,9 +57,6 @@ while not server_started:
         pass
 
 
-PIX2PIX = Pix2Pix()
-
-
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
     if context.user_data is None:
         return None
@@ -84,8 +80,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
 
     buttons = [
         [IKB("txt2prompt", callback_data="txt2prompt")],
-        [IKB("txt2img", callback_data="txt2img"), IKB("undress", callback_data="undress")],
-        [IKB("img2img", callback_data="img2img"), IKB("pix2pix", callback_data="pix2pix")],
+        [IKB("txt2img", callback_data="txt2img"), IKB("img2img", callback_data="img2img")],
     ]
     keyboard = InlineKeyboardMarkup(buttons)
 
@@ -125,12 +120,6 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.message.reply_text("Or choose yourself.", reply_markup=keyboard)
 
             return IMG2IMG_STATE.MODEL
-        case "pix2pix":
-            await query.edit_message_text("pix2pix")
-            # TODO return IMG2IMG_STATE.GET_IMAGE
-        case "undress":
-            await query.edit_message_text("undress")
-            # TODO return IMG2IMG_STATE.GET_IMAGE
 
 
 if __name__ == "__main__":

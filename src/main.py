@@ -6,9 +6,8 @@ from warnings import filterwarnings
 
 import nest_asyncio
 import requests
-from more_itertools import chunked_even
 from telegram import InlineKeyboardButton as IKB
-from telegram import InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
+from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -21,11 +20,9 @@ from telegram.ext import (
 )
 from telegram.warnings import PTBUserWarning
 
-import img2img_conv
 import txt2img_conv
 import txt2prompt_conv
 import utils
-from img2img_conv import IMG2IMG, IMG2IMG_STATE
 from txt2img_conv import TXT2IMG_STATE
 from txt2prompt_conv import TXT2PROMPT_STATE
 
@@ -74,8 +71,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
         return None
 
     buttons = [
-        [IKB("txt2prompt", callback_data="txt2prompt")],
-        [IKB("txt2img", callback_data="txt2img"), IKB("img2img", callback_data="img2img")],
+        [IKB("Generate prompt", callback_data="txt2prompt")],
+        [IKB("Generate image", callback_data="txt2img")],
     ]
     keyboard = InlineKeyboardMarkup(buttons)
 
@@ -101,20 +98,6 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)
 
             return TXT2IMG_STATE.START
-        case "img2img":
-            context.user_data["model"] = None
-
-            models = list(IMG2IMG.PER_MODEL_SETTINGS.keys())
-            keyboard = ReplyKeyboardMarkup(
-                list(chunked_even(models, 3)), one_time_keyboard=True, resize_keyboard=True
-            )
-
-            default_keyboard = InlineKeyboardMarkup([[IKB("Default", callback_data="Default")]])
-
-            await query.edit_message_text("Choose default model:", reply_markup=default_keyboard)
-            await query.message.reply_text("Or choose yourself.", reply_markup=keyboard)
-
-            return IMG2IMG_STATE.MODEL
 
 
 if __name__ == "__main__":
@@ -159,24 +142,6 @@ if __name__ == "__main__":
             TXT2IMG_STATE.PROMPT: [
                 MessageHandler(filters.TEXT, txt2img_conv.txt2img),
                 CallbackQueryHandler(txt2img_conv.prompt_back),
-            ],
-            # IMG2IMG
-            IMG2IMG_STATE.MODEL: [
-                MessageHandler(filters.TEXT, img2img_conv.model_img2img),
-                CallbackQueryHandler(img2img_conv.default_model_img2img),
-            ],
-            IMG2IMG_STATE.STYLE: [
-                MessageHandler(filters.TEXT, img2img_conv.style_img2img),
-            ],
-            IMG2IMG_STATE.GET_PROMPT: [
-                MessageHandler(filters.TEXT, img2img_conv.prompt_img2img),
-                CallbackQueryHandler(img2img_conv.default_prompt_img2img),
-            ],
-            IMG2IMG_STATE.GET_IMAGE: [
-                MessageHandler(filters.PHOTO, img2img_conv.get_image),
-            ],
-            IMG2IMG_STATE.PROMPT: [
-                MessageHandler(filters.TEXT, img2img_conv.img2img),
             ],
         },  # type: ignore
         fallbacks=[

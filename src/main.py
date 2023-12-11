@@ -64,8 +64,7 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     context.user_data["model"] = next(model for model in utils.models() if "anylora" in model)
     context.user_data["style"] = None
 
-    await start(update, context)
-    return
+    return await start(update, context)
 
 
 async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
@@ -100,8 +99,7 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
             await utils.send_prompts(query.message, tokens)
 
-            await start(query, None)  # type: ignore
-            return
+            return await start(query, None)  # type: ignore
 
         case "txt2img":
             await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)

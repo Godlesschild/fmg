@@ -1,0 +1,58 @@
+[credentials]
+
+token = ""
+
+
+[prompt_gen_prompt]
+
+instruction = '''
+List some prompts for an AI that generates pictures with girls.
+'''
+
+# For best results leave this unchanged
+context = '''
+The prompts shouldn't be surrounded by quotes.
+The prompts should include details such as facial features, facial expressions, emotions, setting, clothes, hair, eye color, hair, clothes, etc.
+'''
+
+
+# Put loras here as an array of strings
+# Lora string format is: <lora_name:lora_weight; keyword1, keyword2, ...>
+[loras]
+
+style_loras = []
+
+other_loras = []
+
+
+[txt2img_pre_prompt]
+
+pre_prompt = ""
+
+
+[image_caption_format]
+
+# You can use HTML tags here as specified in https://core.telegram.org/bots/api#html-style
+# Available templates are: {seed}, {style}, {model}, {prompt}, {link} and {link_text}.
+caption_template = '''
+✿ seed: {seed}
+
+⁺₊✧‧₊ style:  #{style}
+‧₊❀˖° model: #{model}
+
+🎀 prompt:
+<pre>{prompt}</pre>
+
+<a href="{link}">{link_text}</a>
+'''
+
+link = "https://github.com/Godlesschild/fmg"
+link_text = "Our github"
+
+
+[txt2ing_default_settings]
+
+n_iter = 3
+steps = 30
+cfg_scale = 7
+denoising_strength = 1

@@ -41,7 +41,7 @@ AUTOMATIC1111 = subprocess.Popen(
 
 server_started = False
 while not server_started:
-    sleep(7.5)
+    sleep(3)
     try:
         requests.get(f"{utils.URL}/sdapi/v1/sd-models").json()
         server_started = True

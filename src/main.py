@@ -1,3 +1,4 @@
+import re
 import subprocess
 from enum import Enum
 from time import sleep
@@ -19,12 +20,11 @@ from telegram.ext import (
     filters,
 )
 from telegram.warnings import PTBUserWarning
+from prompt_gen import PROMPT_GEN
 
 import txt2img_conv
-import txt2prompt_conv
 import utils
 from txt2img_conv import TXT2IMG_STATE
-from txt2prompt_conv import TXT2PROMPT_STATE
 
 filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)
 nest_asyncio.apply()
@@ -66,12 +66,12 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     return await start(update, context)
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
-    if update.message is None or context.user_data is None:
+async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
+    if update.message is None:
         return None
 
     buttons = [
-        [IKB("Generate prompt", callback_data="txt2prompt")],
+        [IKB("Generate prompts", callback_data="prompt_gen")],
         [IKB("Generate image", callback_data="txt2img")],
     ]
     keyboard = InlineKeyboardMarkup(buttons)
@@ -91,9 +91,16 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
     data = query.data
     match data:
-        case "txt2prompt":
-            await query.edit_message_text("Enter prompt amount.")
-            return TXT2PROMPT_STATE.GET_AMOUNT
+        case "prompt_gen":
+            await query.edit_message_text("Generating prompts...", reply_markup=None)
+
+            tokens = PROMPT_GEN.generate()
+
+            await utils.send_prompts(query.message, tokens)
+
+            await start(query, None)  # type: ignore
+            return
+
         case "txt2img":
             await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)
 
@@ -115,14 +122,6 @@ if __name__ == "__main__":
         entry_points=[CommandHandler("start", start)],
         states={
             utils.STATE.START: [CallbackQueryHandler(start_buttons)],
-            # TXT2PROMPT
-            TXT2PROMPT_STATE.GET_AMOUNT: [
-                MessageHandler(filters.TEXT, txt2prompt_conv.amount_txt2prompt),
-            ],
-            TXT2PROMPT_STATE.PROMPT: [
-                MessageHandler(filters.TEXT, txt2prompt_conv.txt2prompt),
-            ],
-            # TXT2IMG
             TXT2IMG_STATE.START: [
                 CallbackQueryHandler(txt2img_conv.start_txt2img),
             ],

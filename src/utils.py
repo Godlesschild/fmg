@@ -48,35 +48,6 @@ class STATE(Enum):
     END = ConversationHandler.END
 
 
-async def _embed_prompt(
-    prompt: str, proc: Compel, append: list[str] = [], prepend: list[str] = []
-) -> FloatTensor:
-    prompt = prompt.strip("., ")
-    prompt = f"{', '.join(prepend)}, {prompt}, {',' .join(append)}"
-    prompt = prompt.strip("., ")
-
-    return proc(prompt)
-
-
-async def _load_embeddings(pipe: DiffusionPipeline) -> list[str]:
-    neg_embeds = []
-
-    for embedding in neg_embeddings():
-        token = embedding.split(".")[0]
-        try:
-            pipe.load_textual_inversion(
-                NEGATIVE_EMBEDDINGS_DIR,
-                weight_name=embedding,
-                token=token,
-            )
-        except ValueError:
-            pass
-
-        neg_embeds.append(token)
-
-    return neg_embeds
-
-
 def neg_embeddings() -> Iterator[str]:
     neg_embeddings = os.listdir(NEGATIVE_EMBEDDINGS_DIR)
     for embedding in neg_embeddings[::-1]:
@@ -84,25 +55,6 @@ def neg_embeddings() -> Iterator[str]:
             continue
 
         yield embedding
-
-
-async def embed(
-    pipe: DiffusionPipeline, prompt: str, neg_prompt: str, embeddings: Optional[int] = None
-) -> tuple[FloatTensor, FloatTensor]:
-    neg_embeds = (await _load_embeddings(pipe))[:embeddings]
-
-    textual_inversion_manager = DiffusersTextualInversionManager(pipe)
-    compel_proc = Compel(
-        tokenizer=pipe.tokenizer,
-        text_encoder=pipe.text_encoder,
-        textual_inversion_manager=textual_inversion_manager,
-    )
-
-    prompt_embeds = await _embed_prompt(prompt, compel_proc)
-
-    neg_prompt_embeds = await _embed_prompt(neg_prompt, compel_proc, neg_embeds)
-
-    return (prompt_embeds, neg_prompt_embeds)
 
 
 async def save_images(images: list[Image.Image], generator_type: type):

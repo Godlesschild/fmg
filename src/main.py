@@ -63,7 +63,8 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     context.user_data["model"] = next(model for model in utils.models() if "anylora" in model)
     context.user_data["style"] = None
 
-    return await start(update, context)
+    await start(update, context)
+    return
 
 
 async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:

@@ -124,7 +124,7 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
         case "SETTINGS":
             settings = context.user_data["settings"]
             if settings == {}:
-                settings = Txt2Img.DEFAULT_SETTINGS.copy()
+                settings = utils.get_config()["txt2ing_default_settings"]
 
             n_iter = settings["n_iter"]
             cfg_scale = settings["cfg_scale"]
@@ -340,7 +340,7 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     neg_prompt = context.user_data["neg_prompt"]
     settings = context.user_data["settings"]
     if settings == {}:
-        settings = Txt2Img.DEFAULT_SETTINGS.copy()
+        settings = utils.get_config()["txt2ing_default_settings"]
 
     kwargs = {
         "prompt": prompt,
@@ -359,13 +359,16 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
 
     style = style.name if style is not None else "none"
     model = model.split(".")[0] if model is not None else "none"
+
+    config = utils.get_config()
+    caption: str = config["image_caption_format"]["caption_template"]
     caption = (
-        f'✿ seed: <a href="https://t.me/+BMD17kF8MdJkMmEy">{seed}</a>\n'  # TODO remove link
-        f"\n"
-        f"⁺₊✧‧₊ style:  #{style}\n"
-        f"‧₊❀˖° model: #{model}\n"
-        f"\n"
-        f"🎀 prompt:\n<pre>{prompt}</pre>"
+        caption.replace("{seed}", str(seed))
+        .replace("{style}", style)
+        .replace("{model}", model)
+        .replace("{prompt}", prompt)
+        .replace("{link}", config["image_caption_format"]["link"])
+        .replace("{link_text}", config["image_caption_format"]["link_text"])
     )
 
     await utils.send_images(images, context, update.message, caption)

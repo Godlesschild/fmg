@@ -1,5 +1,8 @@
-from typing import Iterable, Iterator
+from typing import Iterator
+
 from gpt4all import GPT4All
+
+import utils
 
 
 class PromptGen:
@@ -15,8 +18,23 @@ class PromptGen:
 
     @staticmethod
     def get_prompt() -> str:
-        with open("gen_prompt.txt") as file:
-            return "".join(file.readlines())
+        config = utils.get_config()["prompt_gen_prompt"]
+
+        prompt = (
+            "### Instruction:"
+            "\n"
+            f"{config['instruction'].strip()}"
+            "\n"
+            "\n"
+            "### Input:"
+            f"{config['context'].strip()}"
+            "\n"
+            "\n"
+            "### Response:"
+            "\n"
+        )
+
+        return prompt
 
 
 PROMPT_GEN = PromptGen()

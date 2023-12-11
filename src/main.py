@@ -1,4 +1,3 @@
-import re
 import subprocess
 from enum import Enum
 from time import sleep
@@ -20,10 +19,10 @@ from telegram.ext import (
     filters,
 )
 from telegram.warnings import PTBUserWarning
-from prompt_gen import PROMPT_GEN
 
 import txt2img_conv
 import utils
+from prompt_gen import PROMPT_GEN
 from txt2img_conv import TXT2IMG_STATE
 
 filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)
@@ -37,6 +36,8 @@ AUTOMATIC1111 = subprocess.Popen(
     stdin=subprocess.DEVNULL,
     stdout=subprocess.DEVNULL,
 )
+
+TOKEN = utils.get_config()["credentials"]["token"]
 
 
 server_started = False
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     persistence = PicklePersistence("./persistence/persistence", update_interval=30, single_file=False)
     app = (
         Application.builder()
-        .token(utils.TOKEN)
+        .token(TOKEN)
         .concurrent_updates(False)
         .persistence(persistence)
         .arbitrary_callback_data(True)

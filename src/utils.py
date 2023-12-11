@@ -1,23 +1,19 @@
-import base64
 import gc
 import os
 import re
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from math import ceil
 from pathlib import Path
-from typing import Iterator, NamedTuple, Optional
+from typing import Any, Iterable, Iterator, NamedTuple, Optional
 
 import requests
 import telegram
-from compel import Compel, DiffusersTextualInversionManager
-from diffusers.pipelines.pipeline_utils import DiffusionPipeline
+import tomli
 from more_itertools import flatten
 from PIL import Image
 from telegram import InputMediaPhoto, Message
 from telegram.ext import ContextTypes, ConversationHandler
-from torch import FloatTensor
 
 ASSETS_DIR = Path(".", "stable-diffusion-webui")
 MODELS_DIR = ASSETS_DIR / "models"
@@ -32,14 +28,10 @@ LORA_PATH = Path(".", "loras.txt")
 URL = "http://127.0.0.1:7861"
 
 
-with open("credentials.txt", "r") as file:
-    TOKEN = file.readline().strip()
-
-
 class Lora(NamedTuple):
     name: str
     weight: float
-    trigger_words: tuple[str]
+    trigger_words: Iterable[str]
 
     def __eq__(self, other: object) -> bool:
         if type(other) is not type(self):
@@ -150,59 +142,30 @@ async def send_images(
     )
 
 
-def round_up_64(num: int | float) -> int:
-    return 64 * ceil(num / 64)
+def get_config() -> dict[str, Any]:
+    with open("config.toml", "rb") as file:
+        toml = tomli.load(file)
 
-
-def round_size(size: tuple[int, int] | tuple[float, float]) -> tuple[int, int]:
-    return (round_up_64(size[0]), round_up_64(size[1]))
-
-
-def image_to_base64(image: Image.Image) -> str:
-    output_bytes = BytesIO()
-
-    image.save(output_bytes, format="PNG")
-    img_base64 = base64.b64encode(output_bytes.getvalue()).decode("utf-8")
-
-    return img_base64
-
-
-def downscale_image(image: Image.Image):
-    if max(image.size) > 1024:
-        factor = 1024 / max(image.size)
-        new_size = round_size((image.width * factor, image.height * factor))
-        image = image.resize(new_size, resample=Image.Resampling.LANCZOS)
-
-    return image
+    return toml
 
 
 def styles() -> list[Lora]:
     requests.post(url=f"{URL}/sdapi/v1/refresh-loras")
 
     styles = set()
-    style_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
+    lora_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
 
-    with open(LORA_PATH, "r") as file:
-        loras_lines = file.readlines()
+    config = get_config()
 
-    # find style loras
-    for i, line in enumerate(loras_lines):
-        matches = style_pattern.finditer(line)
+    lora_lines = config["loras"]["style_loras"]
 
-        if len(list(matches)) > 0:
-            loras_lines = loras_lines[i:]
-            break
+    for lora_str in lora_lines:
+        match = lora_pattern.search(lora_str)
 
-    for line in loras_lines:
-        matches = list(style_pattern.finditer(line))
+        if match is None:
+            continue
 
-        if len(matches) == 0:
-            break
-
-        styles.update(
-            Lora(style.group(1), float(style.group(2)), tuple(style.group(3).split(", ")))  # type: ignore
-            for style in matches
-        )
+        styles.add(Lora(match.group(1), float(match.group(2)), tuple(match.group(3).split(", "))))
 
     return list(styles)
 
@@ -220,49 +183,19 @@ def loras() -> list[Lora]:
     loras = set()
     lora_pattern = re.compile(r"\(<(\w+):([0-9.]+)>;\s?(.*?)\)")
 
-    with open(LORA_PATH, "r") as file:
-        loras_lines = file.readlines()
+    config = get_config()
 
-    # find style loras
-    for i, line in enumerate(loras_lines):
-        matches = lora_pattern.finditer(line)
+    lora_lines = config["loras"]["other_loras"]
 
-        if len(list(matches)) > 0:
-            loras_lines = loras_lines[i:]
-            break
+    for lora_str in lora_lines:
+        match = lora_pattern.search(lora_str)
 
-    # skip style loras
-    for i, line in enumerate(loras_lines):
-        matches = lora_pattern.finditer(line)
+        if match is None:
+            continue
 
-        if len(list(matches)) == 0:
-            loras_lines = loras_lines[i:]
-            break
-
-    # find other loras
-    for i, line in enumerate(loras_lines):
-        matches = lora_pattern.finditer(line)
-
-        if len(list(matches)) > 0:
-            loras_lines = loras_lines[i:]
-            break
-
-    for line in loras_lines:
-        matches = list(lora_pattern.finditer(line))
-
-        loras.update(
-            Lora(lora.group(1), float(lora.group(2)), tuple(lora.group(3).split(", ")))  # type: ignore
-            for lora in matches
-        )
+        loras.add(Lora(match.group(1), float(match.group(2)), tuple(match.group(3).split(", "))))
 
     return list(loras)
-
-
-def pre_prompt() -> str:
-    with open(PRE_PROMPT_PATH, "r") as file:
-        pre_prompt = file.readline().strip()
-
-    return pre_prompt
 
 
 def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = None) -> tuple[str, str]:
@@ -275,7 +208,7 @@ def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = N
         lora_keywords = [f"<lora:{lora.name}:{lora.weight}>" for lora in loras]
         lora_keywords = " " + " ".join(lora_keywords)
 
-    pre = pre_prompt()
+    pre = get_config()["txt2img_pre_prompt"]["pre_prompt"]
     if pre != "":
         pre = pre + ", "
 

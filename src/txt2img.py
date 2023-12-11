@@ -12,10 +12,6 @@ import utils
 
 
 class Txt2Img:
-    PRE_PROMPT = utils.pre_prompt()
-
-    DEFAULT_SETTINGS = {"n_iter": 3, "steps": 30, "cfg_scale": 7, "denoising_strength": 1}
-
     async def generate(
         self,
         prompt: str,

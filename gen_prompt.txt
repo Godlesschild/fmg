@@ -1,8 +1,0 @@
-### Instruction:
-<prompt>
-
-### Input:
-<additional context>
-
-### Response:
-<leave a newline blank for model to respond>

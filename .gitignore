@@ -1,9 +1,5 @@
 .vscode
 
-credentials.txt
-loras.txt
-pre_prompt.txt
-
 /persistence
 /stable-diffusion-webui
 

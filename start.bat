@@ -35,7 +35,7 @@ echo.
 
 :: Set environment variables
 if defined NO_GPU (
-    set COMMANDLINE_ARGS="--xformers --api --nowebui --no-half --skip-torch-cuda-test --use-cpu all"
+    set COMMANDLINE_ARGS="--api --nowebui --no-half --skip-torch-cuda-test --use-cpu all"
 ) else (
     set COMMANDLINE_ARGS="--xformers --api --nowebui"
 )

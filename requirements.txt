@@ -1,0 +1,4 @@
+python-telegram-bot
+gpt4all
+nest_asyncio
+more_itertools

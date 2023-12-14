@@ -26,14 +26,24 @@ echo venv: %PYTHON%
 echo.
 
 :: Install required dependencies
-%PYTHON% prepare_env.py
+%PYTHON% setup.py
 %PYTHON% -m pip install -r requirements.txt
 
 echo.
 echo All dependencies installed.
 echo.
 
+:: Set environment variables
+if defined NO_GPU (
+    set COMMANDLINE_ARGS="--xformers --api --nowebui --no-half --skip-torch-cuda-test --use-cpu all"
+) else (
+    set COMMANDLINE_ARGS="--xformers --api --nowebui"
+)
+
 :: Start bot
+echo Starting bot...
+echo.
+
 %PYTHON% src\main.py
 
 pause

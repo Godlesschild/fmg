@@ -10,19 +10,5 @@ if __name__ == "__main__":
 
     prepare_environment()
 
-    webui_user_path = AUTOMATIC1111_DIR / "webui-user.bat"
-
-    webui_user = """@echo off
-
-    set PYTHON=
-    set GIT=
-    set VENV_DIR=
-    set COMMANDLINE_ARGS=--xformers --api --nowebui
-
-    call webui.bat"""
-
-    with open(webui_user_path, "w") as file:
-        file.writelines(webui_user)
-
     persistence_dir = Path(".", "persistence")
     os.makedirs(persistence_dir, exist_ok=True)

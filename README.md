@@ -10,6 +10,8 @@
 
 ## Running
 
+If you want to run on cpu only, set the NO_GPU environment variable.
+
 ### Windows
 
 Run `start.bat` from Windows Explorer as normal.

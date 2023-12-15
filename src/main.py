@@ -1,3 +1,5 @@
+import platform
+import shlex
 import subprocess
 from enum import Enum
 from time import sleep
@@ -30,8 +32,14 @@ nest_asyncio.apply()
 
 
 AUTOMATIC1111_DIR = utils.ASSETS_DIR.absolute()
+
+AUTOMATIC1111_COMMAND = f"{AUTOMATIC1111_DIR}\\webui-user.bat"
+if platform.system() != "Windows":
+    AUTOMATIC1111_COMMAND = shlex.split(f"bash {AUTOMATIC1111_DIR}/webui.sh -f")
+
+
 AUTOMATIC1111 = subprocess.Popen(
-    f"{AUTOMATIC1111_DIR}\\webui-user.bat",
+    AUTOMATIC1111_COMMAND,
     cwd=AUTOMATIC1111_DIR,
     stdin=subprocess.DEVNULL,
     stdout=subprocess.DEVNULL,

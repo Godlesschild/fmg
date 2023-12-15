@@ -61,7 +61,7 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     context.user_data["genre"] = None
     context.user_data["seed"] = None
 
-    context.user_data["model"] = next(model for model in utils.models() if "anylora" in model)
+    context.user_data["model"] = next(model for model in utils.models())
     context.user_data["style"] = None
 
     return await start(update, context)

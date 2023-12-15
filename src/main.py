@@ -50,9 +50,9 @@ while not server_started:
         pass
 
 
-async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[utils.STATE]:
-    if context.user_data is None:
-        return None
+async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if context.user_data is None or update.message is None:
+        return
 
     context.user_data["settings"] = {}
     context.user_data["loras"] = []
@@ -64,7 +64,9 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     context.user_data["model"] = next(model for model in utils.models())
     context.user_data["style"] = None
 
-    return await start(update, context)
+    await update.message.reply_text("All settings set to default.")
+
+    return
 
 
 async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
@@ -145,7 +147,7 @@ if __name__ == "__main__":
         },  # type: ignore
         fallbacks=[
             CommandHandler("start", start),
-            CommandHandler("restart", restart),
+            CommandHandler("reset", reset),
         ],
         allow_reentry=True,
         name="conv_handler",

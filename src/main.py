@@ -40,9 +40,9 @@ if platform.system() != "Windows":
 TOKEN = utils.get_config()["credentials"]["token"]
 
 
-async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.user_data is None or update.message is None:
-        return
+async def restart(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
+    if update.message is None or context.user_data is None:
+        return None
 
     context.user_data["settings"] = {}
     context.user_data["loras"] = []
@@ -53,15 +53,6 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["model"] = next(model for model in utils.models())
     context.user_data["style"] = None
-
-    await update.message.reply_text("All settings set to default.")
-
-    return
-
-
-async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
-    if update.message is None:
-        return None
 
     buttons = [
         [IKB("Generate prompts", callback_data="prompt_gen")],
@@ -91,7 +82,7 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
             await utils.send_prompts(query.message, tokens)
 
-            return await start(query, None)  # type: ignore
+            return await restart(query, None)  # type: ignore
 
         case "txt2img":
             await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)
@@ -127,7 +118,7 @@ if __name__ == "__main__":
     )
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
+        entry_points=[CommandHandler("start", restart)],
         states={
             utils.STATE.START: [CallbackQueryHandler(start_buttons)],
             TXT2IMG_STATE.START: [
@@ -152,8 +143,7 @@ if __name__ == "__main__":
             ],
         },  # type: ignore
         fallbacks=[
-            CommandHandler("start", start),
-            CommandHandler("reset", reset),
+            CommandHandler("restart", restart),
         ],
         allow_reentry=True,
         name="conv_handler",

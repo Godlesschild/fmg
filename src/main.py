@@ -33,7 +33,7 @@ nest_asyncio.apply()
 
 AUTOMATIC1111_DIR = utils.ASSETS_DIR.absolute()
 
-AUTOMATIC1111_COMMAND = f"{AUTOMATIC1111_DIR}\\webui-user.bat"
+AUTOMATIC1111_COMMAND = f"{AUTOMATIC1111_DIR}\\webui.bat"
 if platform.system() != "Windows":
     AUTOMATIC1111_COMMAND = shlex.split(f"bash {AUTOMATIC1111_DIR}/webui.sh -f")
 

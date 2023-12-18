@@ -37,25 +37,7 @@ AUTOMATIC1111_COMMAND = f"{AUTOMATIC1111_DIR}\\webui.bat"
 if platform.system() != "Windows":
     AUTOMATIC1111_COMMAND = shlex.split(f"bash {AUTOMATIC1111_DIR}/webui.sh -f")
 
-
-AUTOMATIC1111 = subprocess.Popen(
-    AUTOMATIC1111_COMMAND,
-    cwd=AUTOMATIC1111_DIR,
-    stdin=subprocess.DEVNULL,
-    stdout=subprocess.DEVNULL,
-)
-
 TOKEN = utils.get_config()["credentials"]["token"]
-
-
-server_started = False
-while not server_started:
-    sleep(3)
-    try:
-        requests.get(f"{utils.URL}/sdapi/v1/sd-models").json()
-        server_started = True
-    except:
-        pass
 
 
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -118,6 +100,22 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
 
 if __name__ == "__main__":
+    AUTOMATIC1111 = subprocess.Popen(
+        AUTOMATIC1111_COMMAND,
+        cwd=AUTOMATIC1111_DIR,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+    )
+
+    server_started = False
+    while not server_started:
+        sleep(3)
+        try:
+            requests.get(f"{utils.URL}/sdapi/v1/sd-models").json()
+            server_started = True
+        except:
+            pass
+
     persistence = PicklePersistence("./persistence/persistence", update_interval=30, single_file=False)
     app = (
         Application.builder()

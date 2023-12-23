@@ -118,7 +118,7 @@ if __name__ == "__main__":
     )
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", restart)],
+        entry_points=[CommandHandler("restart", restart)],
         states={
             utils.STATE.START: [CallbackQueryHandler(start_buttons)],
             TXT2IMG_STATE.START: [

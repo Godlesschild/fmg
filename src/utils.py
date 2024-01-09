@@ -2,7 +2,6 @@ import gc
 import os
 import re
 from datetime import datetime
-from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Iterable, Iterator, NamedTuple, Optional
@@ -13,7 +12,7 @@ import tomli
 from more_itertools import flatten
 from PIL import Image
 from telegram import InputMediaPhoto, Message
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram.ext import ContextTypes
 
 ASSETS_DIR = Path(".", "stable-diffusion-webui")
 MODELS_DIR = ASSETS_DIR / "models"
@@ -41,11 +40,6 @@ class Lora(NamedTuple):
 
     def __str__(self) -> str:
         return self.name
-
-
-class STATE(Enum):
-    START = 1
-    END = ConversationHandler.END
 
 
 def neg_embeddings() -> Iterator[str]:
@@ -126,6 +120,9 @@ def models() -> list[str]:
     requests.post(url=f"{URL}/sdapi/v1/refresh-checkpoints")
 
     response = requests.get(url=f"{URL}/sdapi/v1/sd-models").json()
+
+    print(response)
+
     return [model["title"] for model in response]
 
 
@@ -171,11 +168,3 @@ def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = N
     neg_prompt = " ".join(neg_embeddings()) + " " + neg_prompt
 
     return (prompt, neg_prompt)
-
-
-async def send_prompts(message: Message, prompts: str):
-    list_pattern = re.compile(r"\d+\.")
-
-    prompts = [prompt.strip("., \n") for prompt in list_pattern.split(prompts) if prompt.strip("., \n")]
-    for prompt in prompts:
-        await message.reply_text(prompt)

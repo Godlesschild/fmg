@@ -1,15 +1,13 @@
 import platform
 import shlex
 import subprocess
-from enum import Enum
 from time import sleep
 from typing import Optional
 from warnings import filterwarnings
 
 import nest_asyncio
 import requests
-from telegram import InlineKeyboardButton as IKB
-from telegram import InlineKeyboardMarkup, Update
+from telegram import Update
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -24,8 +22,7 @@ from telegram.warnings import PTBUserWarning
 
 import txt2img_conv
 import utils
-from prompt_gen import PROMPT_GEN
-from txt2img_conv import TXT2IMG_STATE
+from txt2img_conv import STATE
 
 filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)
 nest_asyncio.apply()
@@ -40,7 +37,7 @@ if platform.system() != "Windows":
 TOKEN = utils.get_config()["credentials"]["token"]
 
 
-async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
+async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[STATE]:
     if update.message is None or context.user_data is None:
         return None
 
@@ -54,40 +51,9 @@ async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) ->
     context.user_data["model"] = next(model for model in utils.models())
     context.user_data["style"] = None
 
-    buttons = [
-        [IKB("Generate prompts", callback_data="prompt_gen")],
-        [IKB("Generate image", callback_data="txt2img")],
-    ]
-    keyboard = InlineKeyboardMarkup(buttons)
+    await update.message.reply_text(txt2img_conv.START_TEXT, reply_markup=txt2img_conv.START_KEYBOARD)
 
-    await update.message.reply_text("Hi!!!!", reply_markup=keyboard)
-
-    return utils.STATE.START
-
-
-async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[Enum]:
-    query = update.callback_query
-
-    if query is None or context.user_data is None or query.message is None:
-        return None
-
-    await query.answer()
-
-    data = query.data
-    match data:
-        case "prompt_gen":
-            await query.edit_message_text("Generating prompts...", reply_markup=None)
-
-            tokens = await PROMPT_GEN.generate()
-
-            await utils.send_prompts(query.message, tokens)
-
-            return await start(query, None)  # type: ignore
-
-        case "txt2img":
-            await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)
-
-            return TXT2IMG_STATE.START
+    return STATE.START
 
 
 if __name__ == "__main__":
@@ -120,25 +86,24 @@ if __name__ == "__main__":
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            utils.STATE.START: [CallbackQueryHandler(start_buttons)],
-            TXT2IMG_STATE.START: [
-                CallbackQueryHandler(txt2img_conv.start_txt2img),
+            STATE.START: [
+                CallbackQueryHandler(txt2img_conv.start),
             ],
-            TXT2IMG_STATE.MODEL: [
-                CallbackQueryHandler(txt2img_conv.model_txt2img),
+            STATE.MODEL: [
+                CallbackQueryHandler(txt2img_conv.model),
             ],
-            TXT2IMG_STATE.STYLE: [
-                CallbackQueryHandler(txt2img_conv.style_txt2img),
+            STATE.STYLE: [
+                CallbackQueryHandler(txt2img_conv.style),
             ],
-            TXT2IMG_STATE.LORAS: [
-                CallbackQueryHandler(txt2img_conv.loras_txt2img),
+            STATE.LORAS: [
+                CallbackQueryHandler(txt2img_conv.loras),
             ],
-            TXT2IMG_STATE.SETTINGS: [
-                MessageHandler(filters.TEXT, txt2img_conv.settings_txt2img),
-                CallbackQueryHandler(txt2img_conv.default_settings_txt2img),
+            STATE.SETTINGS: [
+                MessageHandler(filters.TEXT, txt2img_conv.settings),
+                CallbackQueryHandler(txt2img_conv.default_settings),
             ],
-            TXT2IMG_STATE.PROMPT: [
-                MessageHandler(filters.TEXT, txt2img_conv.txt2img),
+            STATE.PROMPT: [
+                MessageHandler(filters.TEXT, txt2img_conv.generate),
                 CallbackQueryHandler(txt2img_conv.prompt_back),
             ],
         },  # type: ignore

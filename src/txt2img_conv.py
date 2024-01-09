@@ -9,21 +9,20 @@ from telegram.ext import ContextTypes
 
 import utils
 from txt2img import Txt2Img
-from utils import STATE
 
 TXT2IMG = Txt2Img()
 
 
-class TXT2IMG_STATE(Enum):
+class STATE(Enum):
     START = 21
     MODEL = 22
     STYLE = 23
     LORAS = 24
     SETTINGS = 25
     PROMPT = 26
-    END = STATE.START
 
 
+START_TEXT = "Hi!!!"
 START_KEYBOARD = InlineKeyboardMarkup(
     [
         *chunked_even(
@@ -43,7 +42,7 @@ START_KEYBOARD = InlineKeyboardMarkup(
 queue = []
 
 
-async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
 
     if query is None or query.message is None or query.data is None or context.user_data is None:
@@ -75,7 +74,7 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return TXT2IMG_STATE.MODEL
+            return STATE.MODEL
 
         case "STYLE":
             message = "Choose style"
@@ -99,7 +98,7 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return TXT2IMG_STATE.STYLE
+            return STATE.STYLE
 
         case "LORAS":
             message = "Choose loras"
@@ -122,7 +121,7 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return TXT2IMG_STATE.LORAS
+            return STATE.LORAS
 
         case "SETTINGS":
             settings = context.user_data["settings"]
@@ -152,7 +151,7 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return TXT2IMG_STATE.SETTINGS
+            return STATE.SETTINGS
         case "PROMPT":
             message = "Enter prompt."
             keyboard = InlineKeyboardMarkup([[IKB("⬅️", callback_data="BACK")]])
@@ -160,10 +159,10 @@ async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return TXT2IMG_STATE.PROMPT
+            return STATE.PROMPT
 
 
-async def model_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def model(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
@@ -174,7 +173,7 @@ async def model_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
         await query.edit_message_text("TXT2IMG")
         await query.edit_message_reply_markup(START_KEYBOARD)
 
-        return TXT2IMG_STATE.START
+        return STATE.START
 
     context.user_data["model"] = next(model for model in utils.models() if query.data.strip("✅") in model)
 
@@ -194,7 +193,7 @@ async def model_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
     await query.edit_message_reply_markup(keyboard)
 
 
-async def style_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def style(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
@@ -205,7 +204,7 @@ async def style_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
         await query.edit_message_text("TXT2IMG")
         await query.edit_message_reply_markup(START_KEYBOARD)
 
-        return TXT2IMG_STATE.START
+        return STATE.START
 
     context.user_data["style"] = next(
         (style for style in utils.styles() if str(style) == query.data.strip("✅")), None
@@ -234,7 +233,7 @@ async def style_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
     await query.edit_message_reply_markup(keyboard)
 
 
-async def loras_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def loras(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
@@ -245,7 +244,7 @@ async def loras_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
         await query.edit_message_text("TXT2IMG")
         await query.edit_message_reply_markup(START_KEYBOARD)
 
-        return TXT2IMG_STATE.START
+        return STATE.START
 
     if query.data == "CLEAR":
         context.user_data["loras"] = []
@@ -277,10 +276,10 @@ async def loras_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
     await query.edit_message_reply_markup(keyboard)
 
-    return TXT2IMG_STATE.LORAS
+    return STATE.LORAS
 
 
-async def settings_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     if update.message is None or update.message.text is None or context.user_data is None:
         return
 
@@ -298,12 +297,10 @@ async def settings_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     await update.message.reply_text("TXT2IMG", reply_markup=START_KEYBOARD)
 
-    return TXT2IMG_STATE.START
+    return STATE.START
 
 
-async def default_settings_txt2img(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> Optional[TXT2IMG_STATE]:
+async def default_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
@@ -317,10 +314,10 @@ async def default_settings_txt2img(
     await query.edit_message_text("TXT2IMG")
     await query.edit_message_reply_markup(START_KEYBOARD)
 
-    return TXT2IMG_STATE.START
+    return STATE.START
 
 
-async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
@@ -328,10 +325,10 @@ async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Opt
     await query.edit_message_text("TXT2IMG")
     await query.edit_message_reply_markup(START_KEYBOARD)
 
-    return TXT2IMG_STATE.START
+    return STATE.START
 
 
-async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     global queue
 
     if update.message is None or update.message.text is None or context.user_data is None:
@@ -385,6 +382,6 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
 
     await utils.send_images(images, context, update.message, caption)
 
-    await update.message.reply_text("TXT2IMG", reply_markup=START_KEYBOARD)
+    await update.message.reply_text(START_TEXT, reply_markup=START_KEYBOARD)
 
-    return TXT2IMG_STATE.START
+    return STATE.START

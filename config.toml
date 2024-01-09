@@ -17,7 +17,7 @@ The prompts should include details such as facial features, facial expressions, 
 
 
 # Put loras here as an array of strings
-# Lora string format is: <lora_name:lora_weight; keyword1, keyword2, ...>
+# Lora string format is: (<lora_name:lora_weight; keyword1, keyword2, ...>)
 [loras]
 
 style_loras = []

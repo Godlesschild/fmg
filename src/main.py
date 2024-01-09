@@ -40,7 +40,7 @@ if platform.system() != "Windows":
 TOKEN = utils.get_config()["credentials"]["token"]
 
 
-async def restart(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
+async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) -> Optional[utils.STATE]:
     if update.message is None or context.user_data is None:
         return None
 
@@ -82,7 +82,7 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
 
             await utils.send_prompts(query.message, tokens)
 
-            return await restart(query, None)  # type: ignore
+            return await start(query, None)  # type: ignore
 
         case "txt2img":
             await query.edit_message_text("TXT2IMG", reply_markup=txt2img_conv.START_KEYBOARD)
@@ -111,14 +111,14 @@ if __name__ == "__main__":
     app = (
         Application.builder()
         .token(TOKEN)
-        .concurrent_updates(False)
+        .concurrent_updates(True)
         .persistence(persistence)
         .arbitrary_callback_data(True)
         .build()
     )
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("restart", restart)],
+        entry_points=[CommandHandler("start", start)],
         states={
             utils.STATE.START: [CallbackQueryHandler(start_buttons)],
             TXT2IMG_STATE.START: [
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             ],
         },  # type: ignore
         fallbacks=[
-            CommandHandler("restart", restart),
+            CommandHandler("start", start),
         ],
         allow_reentry=True,
         name="conv_handler",

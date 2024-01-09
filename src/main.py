@@ -78,7 +78,7 @@ async def start_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> O
         case "prompt_gen":
             await query.edit_message_text("Generating prompts...", reply_markup=None)
 
-            tokens = PROMPT_GEN.generate()
+            tokens = await PROMPT_GEN.generate()
 
             await utils.send_prompts(query.message, tokens)
 

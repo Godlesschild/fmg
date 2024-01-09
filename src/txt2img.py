@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import random
 from datetime import datetime
@@ -68,7 +69,7 @@ class Txt2Img:
 
         request.update(generation_settings)
 
-        response = requests.post(f"{utils.URL}/sdapi/v1/txt2img", json=request)
+        response = await asyncio.to_thread(requests.post, f"{utils.URL}/sdapi/v1/txt2img", json=request)
 
         if response.status_code == 500:
             raise RuntimeError("Request error")

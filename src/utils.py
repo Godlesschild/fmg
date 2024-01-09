@@ -173,25 +173,9 @@ def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = N
     return (prompt, neg_prompt)
 
 
-async def send_prompts(message: Message, tokens: Iterator[str]):
+async def send_prompts(message: Message, prompts: str):
     list_pattern = re.compile(r"\d+\.")
-    prompt = ""
 
-    # skip first list number
-    for token in tokens:
-        if "." in token:
-            break
-
-    for token in tokens:
-        prompt += token
-
-        match = list_pattern.search(prompt)
-        if match is not None:
-            await message.edit_text(prompt[: match.start()], reply_markup=None)
-
-            prompt = ""
-            message = await message.reply_text("Generating prompt...")
-            continue
-
-        if token.strip() != "":
-            await message.edit_text(prompt, reply_markup=None)
+    prompts = [prompt.strip("., \n") for prompt in list_pattern.split(prompts) if prompt.strip("., \n")]
+    for prompt in prompts:
+        await message.reply_text(prompt)

@@ -1,4 +1,4 @@
-from typing import Iterator
+import asyncio
 
 from gpt4all import GPT4All
 
@@ -9,12 +9,11 @@ class PromptGen:
     def __init__(self):
         self.model = None
 
-    def generate(self) -> Iterator[str]:
+    async def generate(self) -> str:
         if self.model is None:
             self.model = GPT4All("nous-hermes-llama2-13b.Q4_0.gguf")
 
-        for token in self.model.generate(self.get_prompt(), max_tokens=1000, streaming=True):
-            yield token
+        return await asyncio.to_thread(self.model.generate, self.get_prompt(), max_tokens=1000)
 
     @staticmethod
     def get_prompt() -> str:

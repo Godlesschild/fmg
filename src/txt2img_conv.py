@@ -40,6 +40,9 @@ START_KEYBOARD = InlineKeyboardMarkup(
 )
 
 
+queue = []
+
+
 async def start_txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
     query = update.callback_query
 
@@ -329,6 +332,8 @@ async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Opt
 
 
 async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[TXT2IMG_STATE]:
+    global queue
+
     if update.message is None or update.message.text is None or context.user_data is None:
         return
 
@@ -355,7 +360,14 @@ async def txt2img(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optiona
     if style is not None:
         kwargs["loras"].append(style)
 
+    queue.append(update.effective_user.id)
+
+    s = "" if len(queue) == 1 else "s"
+    await update.message.reply_text(f"Wait time is ~{len(queue)} minute{s}.")
+
     seed, images = await TXT2IMG.generate(**kwargs)
+
+    queue.remove(update.effective_user.id)
 
     style = style.name if style is not None else "none"
     model = model.split(".")[0] if model is not None else "none"

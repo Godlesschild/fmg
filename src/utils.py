@@ -121,8 +121,6 @@ def models() -> list[str]:
 
     response = requests.get(url=f"{URL}/sdapi/v1/sd-models").json()
 
-    print(response)
-
     return [model["title"] for model in response]
 
 

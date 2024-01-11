@@ -319,7 +319,7 @@ async def default_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
-    if query is None or query.message is None or query.data is None or context.user_data is None:
+    if query is None:
         return
 
     await query.edit_message_text("TXT2IMG")

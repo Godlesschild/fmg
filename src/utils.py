@@ -117,7 +117,10 @@ def styles() -> list[Lora]:
 
 
 def models() -> list[str]:
-    requests.post(url=f"{URL}/sdapi/v1/refresh-checkpoints")
+    try:
+        requests.post(url=f"{URL}/sdapi/v1/refresh-checkpoints", timeout=3)
+    except:
+        pass
 
     response = requests.get(url=f"{URL}/sdapi/v1/sd-models").json()
 

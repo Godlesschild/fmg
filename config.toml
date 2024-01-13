@@ -3,19 +3,6 @@
 token = ""
 
 
-[prompt_gen_prompt]
-
-instruction = '''
-List some prompts for an AI that generates pictures with girls.
-'''
-
-# For best results leave this unchanged
-context = '''
-The prompts shouldn't be surrounded by quotes.
-The prompts should include details such as facial features, facial expressions, emotions, setting, clothes, hair, eye color, hair, clothes, etc.
-'''
-
-
 # Put loras here as an array of strings
 # Lora string format is: (<lora_name:lora_weight; keyword1, keyword2, ...>)
 [loras]

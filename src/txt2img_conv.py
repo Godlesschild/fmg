@@ -112,7 +112,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
 
             keyboard = InlineKeyboardMarkup(
                 [
-                    [IKB("Clear", callback_data="CLEAR")],
+                    [IKB("Очистить", callback_data="CLEAR")],
                     *chunked_even(buttons, 3),
                     [IKB("⬅️", callback_data="BACK")],
                 ]
@@ -263,7 +263,7 @@ async def loras(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
 
     keyboard = InlineKeyboardMarkup(
         [
-            [IKB("Clear", callback_data="CLEAR")],
+            [IKB("Очистить", callback_data="CLEAR")],
             *chunked_even(buttons, 3),
             [IKB("⬅️", callback_data="BACK")],
         ]

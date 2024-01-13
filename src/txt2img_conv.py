@@ -27,14 +27,14 @@ START_KEYBOARD = InlineKeyboardMarkup(
     [
         *chunked_even(
             [
-                IKB("Change model", callback_data="MODEL"),
-                IKB("Change style", callback_data="STYLE"),
-                IKB("Change loras", callback_data="LORAS"),
-                IKB("Change mode", callback_data="MODE"),
+                IKB("Поменять модель", callback_data="MODEL"),
+                IKB("Поменять стиль", callback_data="STYLE"),
+                IKB("Поменять LoRA", callback_data="LORAS"),
+                IKB("Поменять режим", callback_data="MODE"),
             ],
             2,
         ),
-        [IKB("Generate", callback_data="PROMPT")],
+        [IKB("Сгенерировать", callback_data="PROMPT")],
     ]
 )
 
@@ -56,7 +56,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
     state = query.data
     match state:
         case "MODEL":
-            message = "Choose model"
+            message = "Выберите модель"
 
             selected = context.user_data["model"].split(".")[0]
             models = [model.split(".")[0] for model in utils.models()]
@@ -77,7 +77,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
             return STATE.MODEL
 
         case "STYLE":
-            message = "Choose style"
+            message = "Выберите стиль"
 
             selected = str(context.user_data["style"])
             styles = ["None"] + [str(style) for style in utils.styles()]
@@ -101,7 +101,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
             return STATE.STYLE
 
         case "LORAS":
-            message = "Choose loras"
+            message = "Выберите LoRA"
 
             selected = context.user_data["loras"]
 
@@ -124,7 +124,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
             return STATE.LORAS
 
         case "MODE":
-            message = "Choose mode"
+            message = "Выберите режим"
 
             selected = context.user_data["mode"][0]
             modes = list(utils.modes().keys())
@@ -148,7 +148,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
             return STATE.MODE
 
         case "PROMPT":
-            message = "Enter prompt."
+            message = "Введите запрос"
             keyboard = InlineKeyboardMarkup([[IKB("⬅️", callback_data="BACK")]])
 
             await query.edit_message_text(message)

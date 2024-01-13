@@ -25,10 +25,10 @@ style_loras = []
 other_loras = []
 
 
-[txt2img_pre_prompt]
+[pre_prompt]
 
-pre_prompt = ""
-
+# mode_name = "your pre prompt"
+normal = ""
 
 [image_caption_format]
 

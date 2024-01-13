@@ -18,7 +18,7 @@ class STATE(Enum):
     MODEL = 22
     STYLE = 23
     LORAS = 24
-    SETTINGS = 25
+    MODE = 25
     PROMPT = 26
 
 
@@ -30,7 +30,7 @@ START_KEYBOARD = InlineKeyboardMarkup(
                 IKB("Change model", callback_data="MODEL"),
                 IKB("Change style", callback_data="STYLE"),
                 IKB("Change loras", callback_data="LORAS"),
-                IKB("Change settings", callback_data="SETTINGS"),
+                IKB("Change mode", callback_data="MODE"),
             ],
             2,
         ),
@@ -123,35 +123,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
 
             return STATE.LORAS
 
-        case "SETTINGS":
-            settings = context.user_data["settings"]
-            if settings == {}:
-                settings = utils.get_config()["txt2ing_default_settings"]
+        case "MODE":
+            message = "Choose mode"
 
-            n_iter = settings["n_iter"]
-            cfg_scale = settings["cfg_scale"]
-            denoising_strength = settings["denoising_strength"]
-            steps = settings["steps"]
-            neg_prompt = context.user_data["neg_prompt"]
+            selected = context.user_data["mode"][0]
+            modes = list(utils.modes().keys())
 
-            message = (
-                f"Generation settings:\n"
-                f"\n"
-                f"iterations: {n_iter},\n"
-                f"guidance scale: {cfg_scale}\n"
-                f"denoising strength: {denoising_strength},\n"
-                f"steps: {steps},\n"
-                f"Optional[`neg prompt`]: {neg_prompt}"
-            )
+            for i, mode in enumerate(modes):
+                if mode != selected:
+                    continue
+                modes[i] = "✅" + mode
 
+            modes = [IKB(mode, callback_data=mode.strip("✅")) for mode in modes]
             keyboard = InlineKeyboardMarkup(
-                [[IKB("Default", callback_data="Default")], [IKB("⬅️", callback_data="BACK")]]
+                [
+                    *chunked_even(modes, 3),
+                    [IKB("⬅️", callback_data="BACK")],
+                ]
             )
 
             await query.edit_message_text(message)
             await query.edit_message_reply_markup(keyboard)
 
-            return STATE.SETTINGS
+            return STATE.MODE
+
         case "PROMPT":
             message = "Enter prompt."
             keyboard = InlineKeyboardMarkup([[IKB("⬅️", callback_data="BACK")]])
@@ -279,42 +274,41 @@ async def loras(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[
     return STATE.LORAS
 
 
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
-    if update.message is None or update.message.text is None or context.user_data is None:
-        return
-
-    pattern = re.compile(r"^([0-9]+)\n([0-9.]+)\n([0-9.]+)\n([0-9]+)(\n(\w+))?")
-    match = pattern.match(update.message.text)
-    if match is None:
-        await update.message.reply_text("Please reply in the correct format or choose `Default`.")
-        return
-
-    context.user_data["settings"]["n_iter"] = int(match.group(1))
-    context.user_data["settings"]["cfg_scale"] = float(match.group(2))
-    context.user_data["settings"]["denoising_strength"] = float(match.group(3))
-    context.user_data["settings"]["steps"] = int(match.group(4))
-    context.user_data["neg_prompt"] = match.group(6)
-
-    await update.message.reply_text("TXT2IMG", reply_markup=START_KEYBOARD)
-
-    return STATE.START
-
-
-async def default_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
+async def mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
     query = update.callback_query
     if query is None or query.message is None or query.data is None or context.user_data is None:
         return
 
     await query.answer()
 
-    if query.data != "BACK":
-        context.user_data["settings"] = {}
-        context.user_data["neg_prompt"] = None
+    if query.data == "BACK":
+        await query.edit_message_text("TXT2IMG")
+        await query.edit_message_reply_markup(START_KEYBOARD)
 
-    await query.edit_message_text("TXT2IMG")
-    await query.edit_message_reply_markup(START_KEYBOARD)
+        return STATE.START
 
-    return STATE.START
+    context.user_data["mode"] = next(
+        (mode for mode in utils.modes().items() if mode[0] == query.data.strip("✅")), None
+    )
+
+    selected = context.user_data["mode"][0]
+    modes = [mode[0] for mode in utils.modes().items()]
+
+    for i, mode in enumerate(modes):
+        if mode != selected:
+            continue
+        modes[i] = "✅" + mode
+
+    modes = [IKB(mode, callback_data=mode.strip("✅")) for mode in modes]
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            *chunked_even(modes, 3),
+            [IKB("⬅️", callback_data="BACK")],
+        ]
+    )
+
+    await query.edit_message_reply_markup(keyboard)
 
 
 async def prompt_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[STATE]:
@@ -339,6 +333,7 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Option
     style = context.user_data["style"]
     model = context.user_data["model"]
     prompt = context.user_data["prompt"]
+    pre_prompt = context.user_data["mode"][1]
     neg_prompt = context.user_data["neg_prompt"]
     settings = context.user_data["settings"]
     if settings == {}:
@@ -346,6 +341,7 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Option
 
     kwargs = {
         "prompt": prompt,
+        "pre_prompt": pre_prompt,
         "neg_prompt": neg_prompt,
         "generation_settings": settings,
     }

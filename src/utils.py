@@ -148,7 +148,13 @@ def loras() -> list[Lora]:
     return list(loras)
 
 
-def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = None) -> tuple[str, str]:
+def modes() -> dict[str, str]:
+    return get_config()["pre_prompts"]
+
+
+def prepare_prompt(
+    prompt: str, pre: str, loras: list[Lora], neg_prompt: Optional[str] = None
+) -> tuple[str, str]:
     lora_triggers = ""
     lora_keywords = ""
     if len(loras) > 0:
@@ -158,7 +164,6 @@ def prepare_prompt(prompt: str, loras: list[Lora], neg_prompt: Optional[str] = N
         lora_keywords = [f"<lora:{lora.name}:{lora.weight}>" for lora in loras]
         lora_keywords = " " + " ".join(lora_keywords)
 
-    pre = get_config()["txt2img_pre_prompt"]["pre_prompt"]
     if pre != "":
         pre = pre + ", "
 

@@ -41,7 +41,7 @@ async def start(update: Update, context: Optional[ContextTypes.DEFAULT_TYPE]) ->
     if update.message is None or context.user_data is None:
         return None
 
-    context.user_data["settings"] = {}
+    context.user_data["mode"] = next(mode for mode in utils.modes().items())
     context.user_data["loras"] = []
     context.user_data["prompt"] = None
     context.user_data["neg_prompt"] = None
@@ -98,9 +98,8 @@ if __name__ == "__main__":
             STATE.LORAS: [
                 CallbackQueryHandler(txt2img_conv.loras),
             ],
-            STATE.SETTINGS: [
-                MessageHandler(filters.TEXT, txt2img_conv.settings),
-                CallbackQueryHandler(txt2img_conv.default_settings),
+            STATE.MODE: [
+                CallbackQueryHandler(txt2img_conv.mode),
             ],
             STATE.PROMPT: [
                 MessageHandler(filters.TEXT, txt2img_conv.generate),

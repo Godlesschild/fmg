@@ -16,6 +16,7 @@ class Txt2Img:
     async def generate(
         self,
         prompt: str,
+        pre_prompt: str,
         generation_settings: dict[str, int | float],
         neg_prompt: Optional[str] = None,
         model: str = "AnythingV5.safetensors [a1535d0a42]",
@@ -24,7 +25,7 @@ class Txt2Img:
         callback: Optional[Callable[[int, torch.Tensor, dict], None]] = None,
         save: bool = False,
     ) -> tuple[int, list[Image.Image]]:
-        prompt, neg_prompt = utils.prepare_prompt(prompt, loras, neg_prompt)
+        prompt, neg_prompt = utils.prepare_prompt(prompt, pre_prompt, loras, neg_prompt)
 
         generation_settings = generation_settings.copy()
 

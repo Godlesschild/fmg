@@ -356,7 +356,7 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Option
     queue.append(update.effective_user.id)
 
     s = "" if len(queue) == 1 else "у"
-    await update.message.reply_text(f"Время ожидагия: примерно {len(queue)} минут.")
+    await update.message.reply_text(f"Время ожидания: примерно {len(queue)} минут.")
 
     seed, images = await TXT2IMG.generate(**kwargs)
 
